@@ -11,6 +11,11 @@
 
 <body class="">
     <h1> Olá Imundo! vamos comer {{grupo}}</h1>
+    <form action="{% url 'ver_grupos' %}" method="POST"> {% csrf_token %}
+        <input type="text" name="name" placeholder="digite seu nome">
+
+        <input type="submit">
+    </form>
 </body>
 
 </html>

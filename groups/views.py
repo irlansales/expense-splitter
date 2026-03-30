@@ -5,8 +5,8 @@ from django.http import HttpResponse
 
 
 def ver_grupos (request):
-
-
-
-  
-    return   render(request, 'grupos.html', {'grupo':'grupo'})
+    if request.method == 'GET':
+        nome='irlan'
+        return render(request, 'grupos.html', {'grupo': nome})
+    elif request.method == 'POST':
+        print('olá')
