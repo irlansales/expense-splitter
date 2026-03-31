@@ -1,0 +1,166 @@
+{% extends 'accounts/base.html' %}
+{% block title %}{{ grupo.name }}{% endblock %}
+
+{% block content %}
+
+<!-- Cabeçalho -->
+<div class="flex justify-between align-center" style="margin-bottom:1.5rem;">
+    <div>
+        <div class="flex align-center gap-1">
+            <h2>{{ grupo.name }}</h2>
+            <!-- Badge de categoria -->
+            <span style="background:var(--surface2);border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:999px;font-size:0.75rem;color:var(--text-muted);">
+                {{ grupo.get_category_display }}
+            </span>
+            {% if grupo.archived %}
+            <span style="background:#2d2700;color:#fbbf24;padding:0.2rem 0.6rem;border-radius:999px;font-size:0.75rem;">
+                Arquivado
+            </span>
+            {% endif %}
+        </div>
+        {% if grupo.description %}
+            <p class="text-muted mt-1">{{ grupo.description }}</p>
+        {% endif %}
+    </div>
+    <div class="flex gap-1">
+        {% if not grupo.archived %}
+        <a href="{% url 'criar_despesa' grupo.pk %}" class="btn btn-primary">+ Despesa</a>
+        {% endif %}
+        {% if user == grupo.created_by %}
+        <a href="{% url 'editar_grupo' grupo.pk %}" class="btn btn-ghost">Editar</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Grid: balanço + membros -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+
+    <!-- BALANÇO SIMPLES -->
+    <div class="card">
+        <h3 style="margin-bottom:1rem;font-size:0.85rem;color:var(--text-muted);text-transform:uppercase;">Balanço</h3>
+        {% for membro, valor in balance.items %}
+        <div class="flex justify-between" style="padding:0.4rem 0;border-bottom:1px solid var(--border);">
+            <a href="{% url 'perfil' membro.username %}" style="color:var(--text);text-decoration:none;">{{ membro.username }}</a>
+            {% if valor > 0 %}
+                <span class="text-success">+R$ {{ valor }}</span>
+            {% elif valor < 0 %}
+                <!-- Valor negativo: abs() remove o sinal -->
+                <span class="text-danger">-R$ {{ valor|stringformat:".2f"|slice:"1:" }}</span>
+            {% else %}
+                <span class="text-muted">Quitado</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- MEMBROS -->
+    <div class="card">
+        <h3 style="margin-bottom:1rem;font-size:0.85rem;color:var(--text-muted);text-transform:uppercase;">Membros</h3>
+        {% for membro in grupo.members.all %}
+        <div class="flex justify-between align-center" style="padding:0.4rem 0;border-bottom:1px solid var(--border);">
+            <a href="{% url 'perfil' membro.username %}" style="color:var(--text);text-decoration:none;">
+                {{ membro.username }}
+                {% if membro == grupo.created_by %}
+                    <span class="text-muted" style="font-size:0.75rem;"> (criador)</span>
+                {% endif %}
+            </a>
+            {% if user == grupo.created_by and membro != user %}
+            <!-- Remover membro — só o criador vê esse botão -->
+            <form method="POST" action="{% url 'remover_membro' grupo.pk membro.pk %}"
+                  onsubmit="return confirm('Remover {{ membro.username }}?')">
+                {% csrf_token %}
+                <button type="submit" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:0.8rem;">✕</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <!-- Adicionar membro -->
+        {% if user == grupo.created_by %}
+        <form method="POST" action="{% url 'adicionar_membro' grupo.pk %}" class="flex gap-1" style="margin-top:0.8rem;">
+            {% csrf_token %}
+            <input type="text" name="username" placeholder="usuário..." style="flex:1;">
+            <button type="submit" class="btn btn-ghost" style="white-space:nowrap;">+</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<!-- DÍVIDAS SIMPLIFICADAS -->
+{% if transacoes %}
+<div class="card" style="margin-bottom:1.5rem;">
+    <h3 style="margin-bottom:1rem;font-size:0.85rem;color:var(--text-muted);text-transform:uppercase;">Como quitar as dívidas</h3>
+    {% for t in transacoes %}
+    <div style="padding:0.5rem 0;border-bottom:1px solid var(--border);">
+        <!-- A simplificação calcula o caminho mais curto para todo mundo quitar -->
+        <strong>{{ t.de.username }}</strong>
+        <span class="text-muted"> deve pagar </span>
+        <strong class="text-success">R$ {{ t.valor }}</strong>
+        <span class="text-muted"> para </span>
+        <strong>{{ t.para.username }}</strong>
+    </div>
+    {% endfor %}
+    <a href="{% url 'registrar_pagamento' grupo.pk %}" class="btn btn-ghost" style="margin-top:0.8rem;font-size:0.85rem;">
+        Registrar pagamento
+    </a>
+</div>
+{% endif %}
+
+<!-- DESPESAS -->
+<div class="flex justify-between align-center" style="margin-bottom:1rem;">
+    <h3>Despesas</h3>
+    <a href="{% url 'historico_pagamentos' grupo.pk %}" class="text-muted" style="font-size:0.85rem;text-decoration:none;">
+        Ver pagamentos →
+    </a>
+</div>
+
+{% if despesas %}
+    {% for despesa in despesas %}
+    <a href="{% url 'detalhe_despesa' despesa.pk %}" style="text-decoration:none;">
+        <div class="card" style="margin-bottom:0.5rem;">
+            <div class="flex justify-between align-center">
+                <div>
+                    <strong>{{ despesa.description }}</strong>
+                    <span style="background:var(--surface2);border:1px solid var(--border);padding:0.1rem 0.4rem;border-radius:999px;font-size:0.7rem;color:var(--text-muted);margin-left:0.4rem;">
+                        {{ despesa.get_category_display }}
+                    </span>
+                    <p class="text-muted mt-1" style="font-size:0.85rem;">
+                        Pago por {{ despesa.paid_by.username }} · {{ despesa.date|date:"d/m/Y" }}
+                    </p>
+                </div>
+                <strong>R$ {{ despesa.amount }}</strong>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+{% else %}
+    <div class="card" style="text-align:center;padding:2rem;">
+        <p class="text-muted">Nenhuma despesa ainda.</p>
+        {% if not grupo.archived %}
+        <a href="{% url 'criar_despesa' grupo.pk %}" class="btn btn-primary" style="margin-top:1rem;">
+            Adicionar primeira despesa
+        </a>
+        {% endif %}
+    </div>
+{% endif %}
+
+<!-- Ações do grupo (arquivar, sair) -->
+<div class="flex gap-1" style="margin-top:1.5rem;">
+    {% if user == grupo.created_by %}
+    <form method="POST" action="{% url 'arquivar_grupo' grupo.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-ghost">
+            {% if grupo.archived %}Desarquivar{% else %}Arquivar{% endif %}
+        </button>
+    </form>
+    {% else %}
+    <!-- Membros comuns podem sair do grupo -->
+    <form method="POST" action="{% url 'sair_grupo' grupo.pk %}"
+          onsubmit="return confirm('Sair do grupo {{ grupo.name }}?')">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-ghost" style="color:var(--danger);">Sair do grupo</button>
+    </form>
+    {% endif %}
+</div>
+
+{% endblock %}

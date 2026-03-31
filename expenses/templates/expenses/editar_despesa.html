@@ -1,0 +1,64 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Editar despesa{% endblock %}
+
+{% block content %}
+<div style="max-width:500px;margin:0 auto;">
+    <h2 style="margin-bottom:1.5rem;">Editar despesa</h2>
+
+    <div class="card">
+        <form method="POST" action=".">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Descrição *</label>
+                <input type="text" name="description" value="{{ despesa.description }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Valor (R$) *</label>
+                <!-- despesa.amount já vem formatado como Decimal -->
+                <input type="number" name="amount" value="{{ despesa.amount }}" step="0.01" min="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label>Categoria</label>
+                <select name="category">
+                    {% for valor, texto in categoria_choices %}
+                    <option value="{{ valor }}" {% if despesa.category == valor %}selected{% endif %}>
+                        {{ texto }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Data</label>
+                <!-- date|date:"Y-m-d" formata a data no padrão que o input type=date espera -->
+                <input type="date" name="date" value="{{ despesa.date|date:'Y-m-d' }}">
+            </div>
+
+            <div class="form-group">
+                <label>Observações</label>
+                <textarea name="notes" rows="3" placeholder="Detalhes opcionais...">{{ despesa.notes|default:'' }}</textarea>
+            </div>
+
+            <div class="flex gap-1 mt-2">
+                <button type="submit" class="btn btn-primary">Salvar</button>
+                <a href="{% url 'detalhe_despesa' despesa.pk %}" class="btn btn-ghost">Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Apagar despesa -->
+    <div class="card" style="border-color:var(--danger);margin-top:1.5rem;">
+        <p class="text-muted" style="margin-bottom:1rem;font-size:0.9rem;">
+            Apagar a despesa remove também todas as divisões. Não pode ser desfeito.
+        </p>
+        <form method="POST" action="{% url 'apagar_despesa' despesa.pk %}"
+              onsubmit="return confirm('Apagar esta despesa?')">
+            {% csrf_token %}
+            <button type="submit" class="btn" style="background:var(--danger);color:#fff;">Apagar despesa</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

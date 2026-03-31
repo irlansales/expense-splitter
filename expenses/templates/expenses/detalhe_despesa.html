@@ -1,0 +1,77 @@
+{% extends 'accounts/base.html' %}
+{% block title %}{{ despesa.description }}{% endblock %}
+
+{% block content %}
+<div style="max-width:550px;margin:0 auto;">
+
+    <!-- Cabeçalho -->
+    <div class="flex justify-between align-center" style="margin-bottom:1.5rem;">
+        <div>
+            <h2>{{ despesa.description }}</h2>
+            <p class="text-muted mt-1">
+                {{ despesa.date|date:"d/m/Y" }} · Grupo:
+                <a href="{% url 'detalhe_grupo' despesa.group.pk %}" style="color:var(--accent);">{{ despesa.group.name }}</a>
+            </p>
+            <!-- Badge de categoria -->
+            <span style="background:var(--surface2);border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:999px;font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem;display:inline-block;">
+                {{ despesa.get_category_display }}
+            </span>
+        </div>
+        <strong style="font-size:1.4rem;">R$ {{ despesa.amount }}</strong>
+    </div>
+
+    <!-- Quem pagou -->
+    <div class="card">
+        <p class="text-muted" style="margin-bottom:0.5rem;font-size:0.85rem;">PAGO POR</p>
+        <a href="{% url 'perfil' despesa.paid_by.username %}" style="color:var(--text);text-decoration:none;">
+            <strong>{{ despesa.paid_by.username }}</strong>
+        </a>
+    </div>
+
+    <!-- Observações -->
+    {% if despesa.notes %}
+    <div class="card">
+        <p class="text-muted" style="margin-bottom:0.5rem;font-size:0.85rem;">OBSERVAÇÕES</p>
+        <p>{{ despesa.notes }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Divisão -->
+    <div class="card">
+        <p class="text-muted" style="margin-bottom:1rem;font-size:0.85rem;">DIVISÃO</p>
+
+        {% for split in splits %}
+        <div class="flex justify-between align-center" style="padding:0.6rem 0;border-bottom:1px solid var(--border);">
+            <a href="{% url 'perfil' split.user.username %}" style="color:var(--text);text-decoration:none;">
+                {{ split.user.username }}
+            </a>
+            <div class="flex align-center gap-1">
+                <strong>R$ {{ split.amount_owed }}</strong>
+                {% if split.paid %}
+                    <span style="background:#0f2d1a;color:var(--success);padding:0.2rem 0.6rem;border-radius:999px;font-size:0.75rem;">pago</span>
+                {% else %}
+                    <span style="background:#2d1515;color:var(--danger);padding:0.2rem 0.6rem;border-radius:999px;font-size:0.75rem;">pendente</span>
+                {% endif %}
+                <!-- Botão marcar pago — só aparece para o próprio usuário ou criador do grupo -->
+                {% if user == split.user or user == despesa.group.created_by %}
+                <form method="POST" action="{% url 'marcar_pago' split.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-ghost" style="padding:0.2rem 0.5rem;font-size:0.75rem;">
+                        {% if split.paid %}Desmarcar{% else %}Marcar pago{% endif %}
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Ações -->
+    <div class="flex gap-1 mt-2">
+        <a href="{% url 'detalhe_grupo' despesa.group.pk %}" class="btn btn-ghost">← Voltar</a>
+        {% if user == despesa.paid_by or user == despesa.group.created_by %}
+        <a href="{% url 'editar_despesa' despesa.pk %}" class="btn btn-ghost">Editar</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

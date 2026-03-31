@@ -1,0 +1,51 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Notificações{% endblock %}
+
+{% block content %}
+<div style="max-width:600px;margin:0 auto;">
+    <div class="flex justify-between align-center" style="margin-bottom:1.5rem;">
+        <h2>Notificações</h2>
+        {% if notificacoes %}
+        <!-- form POST simples para marcar todas como lidas -->
+        <form method="POST" action=".">
+            {% csrf_token %}
+            <button type="submit" name="marcar_todas" class="btn btn-ghost" style="font-size:0.85rem;">
+                Marcar todas como lidas
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    {% if notificacoes %}
+        {% for notif in notificacoes %}
+        <!-- Notificação não lida tem fundo levemente diferente -->
+        <div class="card" style="{% if not notif.read %}border-color: var(--accent);{% endif %} margin-bottom:0.5rem;">
+            <div class="flex justify-between align-center">
+                <div style="flex:1;">
+                    {% if notif.link %}
+                        <!-- Se tem link, a mensagem inteira é clicável -->
+                        <a href="{{ notif.link }}" style="text-decoration:none;color:var(--text);">
+                            {{ notif.message }}
+                        </a>
+                    {% else %}
+                        {{ notif.message }}
+                    {% endif %}
+                    <p class="text-muted" style="font-size:0.78rem;margin-top:0.3rem;">
+                        {{ notif.created_at|date:"d/m/Y H:i" }}
+                    </p>
+                </div>
+                <!-- Bolinha indicando não lida -->
+                {% if not notif.read %}
+                <div style="width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-left:1rem;"></div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="card" style="text-align:center;padding:3rem;">
+            <p style="font-size:2rem;margin-bottom:1rem;">🔔</p>
+            <p class="text-muted">Nenhuma notificação ainda.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

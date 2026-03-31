@@ -1,0 +1,47 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Histórico de Pagamentos — {{ grupo.name }}{% endblock %}
+
+{% block content %}
+<div style="max-width:600px;margin:0 auto;">
+    <div class="flex justify-between align-center" style="margin-bottom:1.5rem;">
+        <div>
+            <h2>Histórico de pagamentos</h2>
+            <p class="text-muted">{{ grupo.name }}</p>
+        </div>
+        <a href="{% url 'registrar_pagamento' grupo.pk %}" class="btn btn-primary">+ Registrar</a>
+    </div>
+
+    {% if pagamentos %}
+        {% for pagamento in pagamentos %}
+        <div class="card" style="margin-bottom:0.5rem;">
+            <div class="flex justify-between align-center">
+                <div>
+                    <!-- from_user e to_user são objetos User — .username acessa o nome -->
+                    <p>
+                        <strong>{{ pagamento.from_user.username }}</strong>
+                        <span class="text-muted"> pagou </span>
+                        <strong>{{ pagamento.to_user.username }}</strong>
+                    </p>
+                    {% if pagamento.notes %}
+                        <p class="text-muted" style="font-size:0.85rem;margin-top:0.2rem;">{{ pagamento.notes }}</p>
+                    {% endif %}
+                    <p class="text-muted" style="font-size:0.78rem;margin-top:0.2rem;">
+                        {{ pagamento.date|date:"d/m/Y H:i" }}
+                    </p>
+                </div>
+                <strong class="text-success">R$ {{ pagamento.amount }}</strong>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="card" style="text-align:center;padding:3rem;">
+            <p class="text-muted">Nenhum pagamento registrado ainda.</p>
+            <a href="{% url 'registrar_pagamento' grupo.pk %}" class="btn btn-primary" style="margin-top:1rem;">
+                Registrar primeiro pagamento
+            </a>
+        </div>
+    {% endif %}
+
+    <a href="{% url 'detalhe_grupo' grupo.pk %}" class="btn btn-ghost" style="margin-top:1rem;">← Voltar ao grupo</a>
+</div>
+{% endblock %}

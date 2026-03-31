@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Expense Splitter{% endblock %}</title>
+    <style>
+        /* ===== RESET =====
+           Remove margens e paddings padrão do navegador.
+           box-sizing: border-box faz padding e border não aumentar o tamanho do elemento. */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* ===== VARIÁVEIS CSS =====
+           :root define variáveis globais acessíveis em qualquer elemento.
+           Usar variáveis facilita mudar o tema inteiro em um lugar só. */
+        :root {
+            --bg:           #0f0f0f;   /* fundo da página */
+            --surface:      #1a1a1a;   /* fundo de cards */
+            --surface2:     #242424;   /* fundo de inputs */
+            --border:       #2e2e2e;   /* cor das bordas */
+            --text:         #e8e8e8;   /* texto principal */
+            --text-muted:   #888;      /* texto secundário */
+            --accent:       #6c63ff;   /* cor de destaque (roxo) */
+            --accent-hover: #574fd6;   /* accent ao hover */
+            --success:      #22c55e;   /* verde */
+            --danger:       #ef4444;   /* vermelho */
+            --radius:       10px;      /* arredondamento padrão */
+            --font:         'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            min-height: 100vh;
+        }
+
+        /* ===== NAVBAR ===== */
+        nav {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;   /* fica fixo no topo ao rolar */
+            top: 0;
+            z-index: 100;       /* fica sobre outros elementos */
+        }
+
+        .nav-brand {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .nav-links { display: flex; gap: 1rem; align-items: center; }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover { color: var(--text); }
+
+        /* Badge de notificação não lida */
+        .notif-badge {
+            background: var(--danger);
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.1rem 0.35rem;
+            border-radius: 999px;
+            vertical-align: super;
+            margin-left: 2px;
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        /* ===== CARDS =====
+           Cards são caixas com fundo levemente mais claro que o fundo da página.
+           Usados para agrupar informações relacionadas. */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        /* ===== BOTÕES ===== */
+        .btn {
+            display: inline-block;
+            padding: 0.6rem 1.2rem;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            transition: background 0.2s;
+            font-family: var(--font);
+        }
+
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+        .btn-ghost:hover { border-color: var(--text-muted); color: var(--text); }
+
+        /* ===== FORMULÁRIOS ===== */
+        .form-group { margin-bottom: 1.2rem; }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            padding: 0.7rem 1rem;
+            font-size: 0.95rem;
+            font-family: var(--font);
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Estilo do option no select para compatibilidade */
+        select option { background: var(--surface2); }
+
+        /* ===== MENSAGENS =====
+           Django messages framework envia feedback ao usuário.
+           A tag CSS vem do tags do message: 'error', 'success', etc. */
+        .messages { list-style: none; margin-bottom: 1.5rem; }
+
+        .messages li {
+            padding: 0.8rem 1rem;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .messages .error   { background: #2d1515; border: 1px solid var(--danger);  color: #fca5a5; }
+        .messages .success { background: #0f2d1a; border: 1px solid var(--success); color: #86efac; }
+        .messages .warning { background: #2d2700; border: 1px solid #fbbf24;        color: #fde68a; }
+        .messages .info    { background: #0f1f2d; border: 1px solid var(--accent);  color: #93c5fd; }
+
+        /* ===== UTILITÁRIOS ===== */
+        .flex            { display: flex; }
+        .justify-between { justify-content: space-between; }
+        .align-center    { align-items: center; }
+        .gap-1           { gap: 0.5rem; }
+        .mt-1            { margin-top: 0.5rem; }
+        .mt-2            { margin-top: 1rem; }
+        .text-muted      { color: var(--text-muted); font-size: 0.85rem; }
+        .text-accent     { color: var(--accent); }
+        .text-success    { color: var(--success); }
+        .text-danger     { color: var(--danger); }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<nav>
+    <a href="{% url 'lista_grupos' %}" class="nav-brand">💸 Expense Splitter</a>
+
+    <div class="nav-links">
+        {% if user.is_authenticated %}
+            <!-- Sino de notificações com badge de não lidas -->
+            <a href="{% url 'notificacoes' %}">
+                🔔
+                {% with nao_lidas=user.notifications.all %}
+                    {% with count=nao_lidas|length %}
+                        {# Filtra apenas as não lidas para o badge #}
+                        {% for n in nao_lidas %}{% if not n.read and forloop.first %}<span class="notif-badge" id="notif-count"></span>{% endif %}{% endfor %}
+                    {% endwith %}
+                {% endwith %}
+            </a>
+            <!-- Link para o perfil do usuário logado -->
+            <a href="{% url 'perfil' user.username %}" style="color:var(--text);">{{ user.username }}</a>
+            <a href="{% url 'criar_grupo' %}">+ Novo grupo</a>
+            <a href="{% url 'logout' %}">Sair</a>
+        {% else %}
+            <a href="{% url 'login' %}">Entrar</a>
+            <a href="{% url 'cadastro' %}">Cadastrar</a>
+        {% endif %}
+    </div>
+</nav>
+
+<div class="container">
+    <!-- Mensagens de feedback (erro, sucesso, etc.) -->
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+</div>
+
+{% block extra_js %}{% endblock %}
+
+<!-- Script para contar notificações não lidas e mostrar badge -->
+{% if user.is_authenticated %}
+<script>
+    // Conta as notificações não lidas via queryset filtrado no template
+    // Aqui usamos uma abordagem simples: o badge aparece se houver qualquer não lida
+    // Em apps maiores, isso seria feito via API/AJAX para não carregar o banco a cada página
+    const badge = document.getElementById('notif-count');
+    if (badge) {
+        // Conta os elementos com a classe que indica não lida
+        // Por simplicidade, o badge já é renderizado pelo Django se existir alguma
+        badge.textContent = badge.dataset.count || '';
+    }
+</script>
+{% endif %}
+</body>
+</html>

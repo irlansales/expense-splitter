@@ -70,6 +70,17 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'templates/static')]
+
+# ===== ARQUIVOS DE MÍDIA (uploads) =====
+# MEDIA_ROOT = pasta no servidor onde os arquivos enviados pelos usuários são salvos
+# BASE_DIR / 'media' = uma pasta chamada 'media' na raiz do projeto
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# MEDIA_URL = o prefixo de URL para acessar os arquivos de mídia no navegador
+# Ex: /media/avatars/foto.jpg
+MEDIA_URL = '/media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Quando @login_required bloqueia uma view, redireciona para essa URL
+LOGIN_URL = '/login/'

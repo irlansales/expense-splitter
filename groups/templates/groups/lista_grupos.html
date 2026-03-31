@@ -1,0 +1,61 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Meus Grupos{% endblock %}
+
+{% block content %}
+<div class="flex justify-between align-center" style="margin-bottom:1.5rem;">
+    <h2>Meus grupos</h2>
+    <a href="{% url 'criar_grupo' %}" class="btn btn-primary">+ Novo grupo</a>
+</div>
+
+<!-- GRUPOS ATIVOS -->
+{% if grupos_ativos %}
+    {% for grupo in grupos_ativos %}
+    <a href="{% url 'detalhe_grupo' grupo.pk %}" style="text-decoration:none;">
+        <div class="card" style="margin-bottom:0.5rem;">
+            <div class="flex justify-between align-center">
+                <div>
+                    <div class="flex align-center gap-1">
+                        <strong>{{ grupo.name }}</strong>
+                        <!-- get_category_display retorna o texto legível da choice (ex: 'Viagem' em vez de 'viagem') -->
+                        <span style="background:var(--surface2);border:1px solid var(--border);padding:0.1rem 0.5rem;border-radius:999px;font-size:0.72rem;color:var(--text-muted);">
+                            {{ grupo.get_category_display }}
+                        </span>
+                    </div>
+                    {% if grupo.description %}
+                        <p class="text-muted mt-1" style="font-size:0.85rem;">{{ grupo.description }}</p>
+                    {% endif %}
+                </div>
+                <div style="text-align:right;">
+                    <span class="text-muted" style="font-size:0.85rem;">{{ grupo.members.count }} membro{{ grupo.members.count|pluralize }}</span>
+                    <p class="text-muted" style="font-size:0.78rem;">{{ grupo.created_at|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+{% else %}
+    <div class="card" style="text-align:center;padding:3rem;">
+        <p style="font-size:2rem;margin-bottom:1rem;">💸</p>
+        <p class="text-muted">Você ainda não está em nenhum grupo.</p>
+        <a href="{% url 'criar_grupo' %}" class="btn btn-primary" style="margin-top:1rem;">Criar meu primeiro grupo</a>
+    </div>
+{% endif %}
+
+<!-- GRUPOS ARQUIVADOS -->
+{% if grupos_arquivados %}
+<div style="margin-top:2rem;">
+    <h3 style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1rem;text-transform:uppercase;">Arquivados</h3>
+    {% for grupo in grupos_arquivados %}
+    <a href="{% url 'detalhe_grupo' grupo.pk %}" style="text-decoration:none;opacity:0.6;">
+        <div class="card" style="margin-bottom:0.5rem;">
+            <div class="flex justify-between align-center">
+                <strong>{{ grupo.name }}</strong>
+                <span style="background:#2d2700;color:#fbbf24;padding:0.2rem 0.6rem;border-radius:999px;font-size:0.72rem;">Arquivado</span>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

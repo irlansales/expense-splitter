@@ -1,0 +1,69 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Nova Despesa — {{ grupo.name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 550px; margin: 0 auto;">
+    <h2 style="margin-bottom: 0.5rem;">Nova despesa</h2>
+    <p class="text-muted" style="margin-bottom: 1.5rem;">Grupo: {{ grupo.name }}</p>
+
+    <div class="card">
+        <form method="POST" action="." id="form-despesa">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="description">Descrição *</label>
+                <input type="text" id="description" name="description" placeholder="Ex: Pizza, Uber, Mercado..." required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="amount">Valor total (R$) *</label>
+                <input type="number" id="amount" name="amount" placeholder="0.00" step="0.01" min="0.01" required>
+            </div>
+
+            <!-- Tipo de divisão: igual ou manual -->
+            <div class="form-group">
+                <label>Tipo de divisão</label>
+                <div class="flex gap-1" style="margin-top: 0.4rem;">
+                    <!-- onchange chama a função JS que mostra/esconde os campos manuais -->
+                    <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; color: var(--text);">
+                        <input type="radio" name="split_type" value="igual" checked onchange="toggleSplit(this.value)">
+                        Dividir igual
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; color: var(--text); margin-left: 1rem;">
+                        <input type="radio" name="split_type" value="manual" onchange="toggleSplit(this.value)">
+                        Definir manualmente
+                    </label>
+                </div>
+            </div>
+
+            <!-- Campos de divisão manual — ocultos por padrão -->
+            <div id="splits-manuais" style="display: none;">
+                <p class="text-muted" style="margin-bottom: 0.8rem; font-size: 0.85rem;">Defina quanto cada pessoa deve:</p>
+                {% for membro in membros %}
+                <div class="form-group flex align-center gap-1">
+                    <label style="min-width: 120px; color: var(--text);">{{ membro.username }}</label>
+                    <!-- name="split_<pk>" é lido na view pelo request.POST.get(f'split_{membro.pk}') -->
+                    <input type="number" name="split_{{ membro.pk }}" placeholder="0.00" step="0.01" min="0" value="0">
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="flex gap-1 mt-2">
+                <button type="submit" class="btn btn-primary">Adicionar despesa</button>
+                <a href="{% url 'detalhe_grupo' grupo.pk %}" class="btn btn-ghost">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Mostra os campos de divisão manual apenas quando "manual" é selecionado
+    function toggleSplit(value) {
+        const div = document.getElementById('splits-manuais');
+        div.style.display = value === 'manual' ? 'block' : 'none';
+    }
+</script>
+{% endblock %}

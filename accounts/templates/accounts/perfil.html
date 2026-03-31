@@ -1,0 +1,52 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Perfil de {{ usuario.username }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+
+    <!-- Cabeçalho do perfil -->
+    <div class="card flex align-center gap-1" style="gap: 1.5rem;">
+        <!-- Avatar: se não tiver, mostra as iniciais -->
+        <div style="width:72px;height:72px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;flex-shrink:0;">
+            {% if perfil_obj.avatar %}
+                <img src="{{ perfil_obj.avatar.url }}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;">
+            {% else %}
+                {{ usuario.username|first|upper }}
+            {% endif %}
+        </div>
+        <div style="flex:1;">
+            <h2>{{ usuario.username }}</h2>
+            {% if usuario.get_full_name %}
+                <p class="text-muted">{{ usuario.get_full_name }}</p>
+            {% endif %}
+            {% if perfil_obj.bio %}
+                <p style="margin-top:0.5rem;">{{ perfil_obj.bio }}</p>
+            {% endif %}
+            <p class="text-muted" style="margin-top:0.5rem;font-size:0.8rem;">
+                {{ total_despesas }} despesa{{ total_despesas|pluralize }} paga{{ total_despesas|pluralize }}
+            </p>
+        </div>
+        <!-- Só aparece o botão de editar no próprio perfil -->
+        {% if usuario == user %}
+        <a href="{% url 'editar_perfil' %}" class="btn btn-ghost">Editar</a>
+        {% endif %}
+    </div>
+
+    <!-- Grupos em comum -->
+    {% if grupos_em_comum %}
+    <h3 style="margin:1.5rem 0 1rem;">Grupos em comum</h3>
+    {% for grupo in grupos_em_comum %}
+    <a href="{% url 'detalhe_grupo' grupo.pk %}" style="text-decoration:none;">
+        <div class="card flex justify-between align-center">
+            <span>{{ grupo.name }}</span>
+            <span class="text-muted">{{ grupo.members.count }} membros</span>
+        </div>
+    </a>
+    {% endfor %}
+    {% else %}
+    <div class="card" style="text-align:center;padding:2rem;">
+        <p class="text-muted">Nenhum grupo em comum.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

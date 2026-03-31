@@ -1,0 +1,50 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Editar Perfil{% endblock %}
+
+{% block content %}
+<div style="max-width:500px;margin:0 auto;">
+    <h2 style="margin-bottom:1.5rem;">Editar perfil</h2>
+
+    <div class="card">
+        <form method="POST" action="." enctype="multipart/form-data">
+            <!-- enctype="multipart/form-data" é obrigatório quando o form tem upload de arquivo -->
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Nome</label>
+                <!-- value="{{ ... }}" pré-preenche o campo com o valor atual -->
+                <input type="text" name="first_name" value="{{ user.first_name }}" placeholder="Seu nome">
+            </div>
+
+            <div class="form-group">
+                <label>Sobrenome</label>
+                <input type="text" name="last_name" value="{{ user.last_name }}" placeholder="Seu sobrenome">
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" value="{{ user.email }}" placeholder="seu@email.com">
+            </div>
+
+            <div class="form-group">
+                <label>Sobre mim</label>
+                <textarea name="bio" rows="3" placeholder="Conte um pouco sobre você...">{{ perfil_obj.bio|default:'' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Foto de perfil</label>
+                {% if perfil_obj.avatar %}
+                    <p class="text-muted" style="margin-bottom:0.5rem;">Foto atual: {{ perfil_obj.avatar }}</p>
+                {% endif %}
+                <input type="file" name="avatar" accept="image/*">
+            </div>
+
+            <div class="flex gap-1 mt-2">
+                <button type="submit" class="btn btn-primary">Salvar</button>
+                <a href="{% url 'perfil' user.username %}" class="btn btn-ghost">Cancelar</a>
+                <a href="{% url 'mudar_senha' %}" class="btn btn-ghost" style="margin-left:auto;">Mudar senha</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

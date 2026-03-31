@@ -1,0 +1,38 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Novo Grupo{% endblock %}
+
+{% block content %}
+<div style="max-width:500px;margin:0 auto;">
+    <h2 style="margin-bottom:1.5rem;">Criar novo grupo</h2>
+
+    <div class="card">
+        <form method="POST" action=".">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="name">Nome do grupo *</label>
+                <input type="text" id="name" name="name" placeholder="Ex: Viagem pra SP, República..." required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Descrição (opcional)</label>
+                <textarea id="description" name="description" rows="3" placeholder="Descreva o grupo..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="category">Categoria</label>
+                <select id="category" name="category">
+                    {% for valor, texto in categoria_choices %}
+                    <option value="{{ valor }}">{{ texto }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="flex gap-1 mt-2">
+                <button type="submit" class="btn btn-primary">Criar grupo</button>
+                <a href="{% url 'lista_grupos' %}" class="btn btn-ghost">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
